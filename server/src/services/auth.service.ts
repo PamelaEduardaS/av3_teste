@@ -11,23 +11,41 @@ const TOKEN_EXPIRATION = '1h';
 
 export class AuthService {
     static async registerUser(email: string, password: string, name: string) {
+        // Validação do email vazio
+        if (!email) {
+            throw new InvalidCredentialsError('O email não pode ser vazio');
+        }
+    
+        // Validação do nome vazio
+        if (!name) {
+            throw new InvalidCredentialsError('O nome não pode ser vazio');
+        }
+    
+        // Verifica se o email já está registrado
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
-            throw new UserAlreadyRegisteredError();
+            throw new UserAlreadyRegisteredError(); // Lança erro se o usuário já existe
         }
-
+    
+        // Criptografa a senha
         const hashedPassword = await bcrypt.hash(password, 10);
+    
+        // Cria o usuário no banco de dados
         const user = await prisma.user.create({
             data: { email, password: hashedPassword, name },
         });
-
+    
+        // Gera o token JWT
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
-
+    
+        // Retorna o token e os dados do usuário
         return {
             token,
             user: { id: user.id, email: user.email, name: user.name },
         };
     }
+    
+    
 
     static async loginUser(email: string, password: string) {
         const user = await prisma.user.findUnique({ where: { email } });

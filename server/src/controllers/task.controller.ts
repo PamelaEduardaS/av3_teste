@@ -79,7 +79,6 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
     const userId = req.userId;
     if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Não autorizado' });
-
         return;
     }
 
@@ -87,7 +86,12 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
         await TaskService.deleteTask(userId, parseInt(req.params.id));
         res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
-        console.error('Erro ao deletar tarefa:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Erro no servidor' });
+        if (error instanceof TaskNotFoundError) {
+            res.status(StatusCodes.NOT_FOUND).json({ message: error.message });
+        } else {
+            console.error('Erro ao deletar tarefa:', error);
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Erro no servidor' });
+        }
     }
 };
+

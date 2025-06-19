@@ -82,8 +82,19 @@ export class TaskService {
     }
 
     static async deleteTask(userId: number, id: number) {
+        // Verificar se a tarefa existe antes de tentar deletar
+        const task = await prisma.task.findUnique({
+            where: { id, userId },
+        });
+    
+        if (!task) {
+            throw new TaskNotFoundError('Tarefa não encontrada');
+        }
+    
+        // Se a tarefa existir, prosseguir com a deleção
         await prisma.task.delete({
             where: { id, userId },
         });
     }
+    
 }

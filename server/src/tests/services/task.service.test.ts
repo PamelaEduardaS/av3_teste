@@ -29,6 +29,9 @@ describe('TaskService', () => {
     });
 
     describe('createTask', () => {
+    
+        
+
         it('deve criar tarefa quando o título for válido', async () => {
             // Arrange (preparar)
             const dadosValidos = {
@@ -77,6 +80,7 @@ describe('TaskService', () => {
             // Assert (verificar)
             await expect(promise).rejects.toBeInstanceOf(InvalidTaskNameError);
         });
+        
 
         it('deve criar tarefa com todos os campos preenchidos', async () => {
             // Arrange (preparar)
@@ -234,18 +238,5 @@ describe('TaskService', () => {
         });
     });
 
-    describe('deleteTask', () => {
-        it('deve excluir a tarefa pelo seu identificador', async () => {
-            // Arrange (preparar)
-            (prisma.task.delete as jest.Mock).mockResolvedValue(undefined);
 
-            // Act (agir)
-            await TaskService.deleteTask(userId, 1);
-
-            // Assert (verificar)
-            expect(prisma.task.delete).toHaveBeenCalledWith({
-                where: { id: 1, userId },
-            });
-        });
-    });
 });

@@ -60,3 +60,43 @@ describe('TaskController', () => {
         });
     });
 });
+
+describe('DELETE /api/tasks/:id', () => {
+    it('deve deletar a tarefa com id válido e verificar se a tarefa também foi excluida do banco', async () => {
+        // Arrange (preparar)
+        const taskData = {
+            title: `Tarefa para deletar ${new Date()}`,
+            description: 'Essa tarefa será deletada',
+            completed: false,
+            priority: 'low',
+        };
+
+        // Cria uma tarefa primeiro
+        const createdResponse = await request(app).post('/api/tasks').send(taskData);
+        const createdTask = createdResponse.body;
+        const taskId = createdTask.id; // Pega o ID da tarefa criada
+
+        // Act (agir) - Deleta a tarefa
+        const response = await request(app).delete(`/api/tasks/${taskId}`);
+
+        // Assert (verificar)
+        expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);  // Espera status 204 (sem conteúdo)
+        
+        // Verifica se a tarefa foi removida do banco de dados
+        const taskInDB = await prisma.task.findUnique({ where: { id: taskId } });
+        expect(taskInDB).toBeNull();  // Verifica se a tarefa foi deletada do banco
+    });
+
+    it('deve retornar erro 404 quando a tarefa não existir', async () => {
+        // Arrange (preparar)
+        const invalidTaskId = 9999;  // Um ID de tarefa que não existe no banco
+
+        // Act (agir)
+        const response = await request(app).delete(`/api/tasks/${invalidTaskId}`);
+
+        // Assert (verificar)
+        expect(response.statusCode).toBe(StatusCodes.NOT_FOUND);  // Espera erro 404
+        expect(response.body).toEqual({ message: 'Tarefa não encontrada' });  // Verifica a mensagem de erro
+    });
+});
+
